@@ -19,12 +19,16 @@ return {
       "javascript", -- because who doesn't love a good semicolon joke
       "json", -- because it's just so on point
       "lua", -- because it's the moon of programming languages
+      "markdown", --
+      "markdown_inline", --
       "python", -- because indentation is not a suggestion
+      "regex", --
       "rust", -- because memory safety is no laughing matter
       "svelte", -- because it's the new kid on the block
       "toml", -- because it's not yaml
       "tsx", -- because typescript + jsx = tsx
       "typescript", -- because javascript needs some discipline
+      "vim", --
       "wgsl", -- because webgpu shading language sounds cool
       "yaml", -- because it's not toml
     },
