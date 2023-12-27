@@ -1,9 +1,12 @@
 -- Rust software development additional configuration
 local lspconfig = require("lspconfig")
 
+-- Get current target with:
+-- vim.inspect(require('lspconfig').rust_analyzer.manager.config.settings['rust-analyzer'].cargo.target)
+
 -- This function makes it easy to switch the build target during runtime
 local function set_rust_target(target)
-  lspconfig.rust_analyzer.setup({
+  lspconfig.rust_analyzer.setup(vim.tbl_deep_extend("force", lspconfig.rust_analyzer.manager.config, {
     settings = {
       ["rust-analyzer"] = {
         cargo = {
@@ -11,7 +14,7 @@ local function set_rust_target(target)
         },
       },
     },
-  })
+  }))
 end
 
 return {
