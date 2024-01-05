@@ -8,7 +8,8 @@ return {
     completion = {
       completeopt = "menu,menuone,noselect",
     },
-    mapping = {
+    preselect = cmp.PreselectMode.None,
+    mapping = cmp.mapping.preset.insert({
       ["<CR>"] = cmp.mapping({
         i = function(fallback)
           if cmp.visible() and cmp.get_active_entry() then
@@ -20,7 +21,7 @@ return {
         s = cmp.mapping.confirm({ select = true }),
         c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
       }),
-    },
+    }),
     window = {
       completion = cmp.config.window.bordered(),
       documentation = cmp.config.window.bordered(),
