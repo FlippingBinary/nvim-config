@@ -17,10 +17,48 @@ local function set_rust_target(target)
   }))
 end
 
+local function print_rust_target()
+  local target = lspconfig.rust_analyzer.manager.config.settings["rust-analyzer"].cargo.target
+
+  -- Check if target was set during runtime
+  if target ~= nil then
+    print(target)
+    return
+  end
+
+  -- Otherwise, check the default target
+  local handle = io.popen("rustc -vV")
+  if handle ~= nil then
+    local result = handle:read("*a")
+    handle:close()
+    for line in result:gmatch("[^\r\n]+") do
+      if line:find("host:") then
+        target = line:match("^%s*(.-)%s*$"):gsub("host: ", "")
+      end
+    end
+  else
+    print("Unable to run `rustc -vV` to get rust target")
+  end
+
+  -- Print the results
+  if target ~= nil then
+    print(target)
+  else
+    print("Unable to find the rust target in `rustc -vV` output")
+  end
+end
+
 return {
   {
     "simrat39/rust-tools.nvim",
     keys = {
+      {
+        "<leader>rp",
+        function()
+          print_rust_target()
+        end,
+        desc = "Print current target",
+      },
       {
         "<leader>rl",
         function()
