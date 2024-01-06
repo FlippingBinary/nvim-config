@@ -10,6 +10,7 @@ return {
       modes = {
         search = {
           -- Without this, text searches abruptly end when typing a string that's not present in the buffer.
+          -- See: https://github.com/LazyVim/LazyVim/discussions/1410
           enabled = false,
         },
       },
