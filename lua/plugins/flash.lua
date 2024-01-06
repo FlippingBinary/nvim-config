@@ -6,7 +6,14 @@ return {
     "folke/flash.nvim",
     event = "VeryLazy",
     ---@type Flash.Config
-    opts = {},
+    opts = {
+      modes = {
+        search = {
+          -- Without this, text searches abruptly end when typing a string that's not present in the buffer.
+          enabled = false,
+        },
+      },
+    },
     -- stylua: ignore
     keys = {
       { "s", mode = { "o" }, false },
