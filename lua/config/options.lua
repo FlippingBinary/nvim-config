@@ -42,5 +42,5 @@ identify_os()
 -- Highlight the column containing the cursor
 vim.wo.cursorcolumn = true
 -- Highlight the 100th column to encourage keeping lines short
-vim.wo.colorcolumn = "100"
+vim.wo.colorcolumn = "78,100"
 
