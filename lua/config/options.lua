@@ -43,4 +43,6 @@ identify_os()
 vim.wo.cursorcolumn = true
 -- Highlight the 100th column to encourage keeping lines short
 vim.wo.colorcolumn = "78,100"
+-- Increase the keymap timeout so that `gcc` is a little easier to use
+vim.o.timeoutlen = 500
 
