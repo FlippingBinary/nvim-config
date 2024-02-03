@@ -6,6 +6,7 @@ local function set_rust_target(target)
   local bufnr = vim.api.nvim_get_current_buf()
   local timer = vim.loop.new_timer()
   if not timer then
+    -- Fallback to simply sleeping for 5 seconds and hoping that's long enough.
     vim.loop.sleep(5000)
     vim.cmd.RustAnalyzer("start")
   else
@@ -17,8 +18,10 @@ local function set_rust_target(target)
         local clients = vim.lsp.get_active_clients({ bufnr = bufnr, name = "rust-analyzer" })
         if #clients == 0 or time_to_live <= 0 then
           -- rust-analyzer has stopped running or we've waited too long
+          if timer:is_closing() == false then
+            timer:close()
+          end
           vim.cmd.RustAnalyzer("start")
-          timer:close()
           time_to_live = 0
         end
         time_to_live = time_to_live - 1
