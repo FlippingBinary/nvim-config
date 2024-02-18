@@ -1,1 +1,4 @@
-# There is nothing that should be ignored in this configuration directory
+# It seems pointless to try to synchronize the lazy-lock file because there are always updates
+# that interfere with synchronizing the rest of the files.  So, we'll just ignore it.
+/lazy-lock.json
+
