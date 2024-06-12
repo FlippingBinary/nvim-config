@@ -2,7 +2,7 @@ local map = vim.keymap.set
 
 -- This function makes it easy to switch the build target during runtime
 local function set_rust_target(target)
-  print("Setting target to " .. target)
+  LazyVim.info("Setting target to *" .. target .. "*", { title = "Rust architecture" })
   vim.g.rust_analyzer_cargo_target = target
   vim.cmd.RustAnalyzer("restart")
 end
@@ -31,7 +31,7 @@ local function get_rust_target()
 end
 
 local function print_rust_target()
-  print("Current target: " .. get_rust_target())
+  LazyVim.info("Current target *" .. get_rust_target() .. "*", { title = "Rust architecture" })
 end
 
 local rust_analyzer_default_settings = {
@@ -40,7 +40,10 @@ local rust_analyzer_default_settings = {
     cargo = {
       allFeatures = true,
       loadOutDirsFromCheck = true,
-      runBuildScripts = true,
+      runBuildScripts = true, -- possibly can be removed?
+      buildScripts = {
+        enable = true,
+      },
     },
     -- Add clippy lints for Rust.
     checkOnSave = {
@@ -79,27 +82,35 @@ return {
         return { ra_binary } -- You can add args to the list, such as '--log-file'
       end,
       on_attach = function(_, bufnr)
+        -- From LazyVim's standard configuration
         map("n", "<leader>cR", function()
           vim.cmd.RustLsp("codeAction")
         end, { desc = "Code Action", buffer = bufnr })
         map("n", "<leader>dr", function()
           vim.cmd.RustLsp("debuggables")
         end, { desc = "Rust Debuggables", buffer = bufnr })
+
+        -- Clear the Rust target architecture override (reverts to default)
         map("n", "<leader>tc", function()
           set_rust_target(nil)
         end, { desc = "Clear target", buffer = bufnr })
+        -- Set Linux as Rust target architecture
         map("n", "<leader>tl", function()
           set_rust_target("x86_64-unknown-linux-gnu")
         end, { desc = "Target Linux", buffer = bufnr })
+        -- Set Windows as Rust target architecture
         map("n", "<leader>tm", function()
           set_rust_target("x86_64-pc-windows-msvc")
         end, { desc = "Target MS Windows", buffer = bufnr })
+        -- Print the current Rust target architecture
         map("n", "<leader>tp", function()
           print_rust_target()
         end, { desc = "Print target", buffer = bufnr })
+        -- Set WASM as Rust target architecture
         map("n", "<leader>tw", function()
           set_rust_target("wasm32-unknown-unknown")
         end, { desc = "Target WASM", buffer = bufnr })
+
         -- Add which-key groups
         local wk = require("which-key")
         wk.register({
