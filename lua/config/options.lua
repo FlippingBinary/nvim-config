@@ -1,5 +1,74 @@
 -- Options are automatically loaded before lazy.nvim startup
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
+
+-- First, we identify the current OS, setting global variables that can be used by plugins and other configuration files.
+-- This sets some global variables that can adjust the configuration for the environment without
+-- having to run environment tests in every file.
+--
+-- Here are the meanings of the global variables:
+-- `vim.g.os_family` - The OS family (windows, mac, or linux)
+-- `vim.g.os_platform` - The platform (native, docker, or wsl)
+-- `vim.g.session_type` - The session type (local, ssh, or unknown if the test fails or did not take place)
+local uname = vim.loop.os_uname()
+if uname.sysname == "Windows_NT" then
+  vim.g.os_family = "windows"
+elseif uname.sysname == "Darwin" then
+  vim.g.os_family = "mac"
+elseif uname.sysname == "Linux" then
+  vim.g.os_family = "linux"
+else
+  LazyVim.notify(
+    "A new OS! Awesome! Please identify what os_family '"
+      .. uname.sysname
+      .. "' belongs to and update ~/.config/nvim/lua/config/options.lua!"
+  )
+end
+
+if vim.g.os_family == "windows" then
+  -- If the `C:\\.dockerenv` file exists, we should assume we're running under docker.
+  local docker_env = io.open("C:\\.dockerenv")
+  if docker_env then
+    docker_env:close()
+    vim.g.os_platform = "docker"
+  else
+    vim.g.os_platform = "native"
+  end
+
+  -- I haven't looked into ways to test this because I never ssh into my Windows machine,
+  -- but I don't want to set this to "local" because I'm not actually testing it.
+  vim.g.session_type = "unknown"
+else
+  -- If the `/.dockerenv` file exists, we should assume we're running under docker.
+  local docker_env = io.open("/.dockerenv")
+  if docker_env then
+    docker_env:close()
+    vim.g.os_platform = "docker"
+  elseif os.getenv("WSL_DISTRO_NAME") then
+    -- Now we know that we're running on Linux in WSL on Windows.
+    vim.g.os_platform = "wsl"
+  else
+    vim.g.os_platform = "native"
+  end
+
+  local handle = io.popen("pstree -s -p $$")
+  local result = ""
+
+  if handle then
+    result = handle:read("*a")
+    handle:close()
+
+    if result:match("%Asshd%A") then
+      vim.g.session_type = "ssh"
+    else
+      vim.g.session_type = "local"
+    end
+  else
+    vim.g.session_type = "unknown"
+  end
+end
+
+-- This marks the end of the environment identification section.
+
 -- Add any additional options here
 
 -- Disable :checkhealth warning about PERL
@@ -9,37 +78,6 @@ vim.g.loaded_ruby_provider = 0
 
 -- Disable LazyVim auto format
 vim.g.autoformat = false
-
--- Identify the current OS, setting global variables that can be used by plugins and other configuration files.
-local uname = vim.loop.os_uname()
-if uname.sysname == "Windows_NT" then
-  vim.g.os_family = "windows"
-elseif uname.sysname == "Darwin" then
-  vim.g.os_family = "mac"
-elseif uname.sysname == "Linux" then
-  vim.g.os_family = "linux"
-else
-  print(
-    "A new OS! Awesome! Please identify what os_family '"
-      .. uname.sysname
-      .. "' belongs to and update ~/.config/nvim/lua/config/options.lua!"
-  )
-end
-
-if os.getenv("WSL_DISTRO_NAME") then
-  -- We're running on Windows under WSL, so it's probably Linux, but there may be special changes that have to be made with special circumstances
-  vim.g.os_platform = "wsl"
-  -- setup_zsh()
-else
-  -- If the `/.dockerenv` file exists, we should assume we're running under docker.
-  local docker_env = io.open("/.dockerenv")
-  if docker_env then
-    docker_env:close()
-    vim.g.os_platform = "docker"
-  else
-    vim.g.os_platform = "native"
-  end
-end
 
 -- Highlight the column containing the cursor
 vim.wo.cursorcolumn = true
