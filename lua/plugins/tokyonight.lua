@@ -10,7 +10,7 @@ local plugin = {
   },
 }
 
-if vim.g.os_family == "linux" and vim.g.os_platform == "native" then
+if vim.g.os_family == "linux" and vim.g.os_platform == "native" and vim.g.session_type == "local" then
   return vim.tbl_deep_extend("error", plugin, {
     -- Enable transparent background only on native Linux
     opts = {
