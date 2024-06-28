@@ -50,20 +50,10 @@ else
     vim.g.os_platform = "native"
   end
 
-  local handle = io.popen("pstree -s -p $$")
-  local result = ""
-
-  if handle then
-    result = handle:read("*a")
-    handle:close()
-
-    if result:match("%Asshd%A") then
-      vim.g.session_type = "ssh"
-    else
-      vim.g.session_type = "local"
-    end
+  if os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY") then
+    vim.g.session_type = "ssh"
   else
-    vim.g.session_type = "unknown"
+    vim.g.session_type = "local"
   end
 end
 
