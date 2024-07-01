@@ -94,6 +94,10 @@ return {
         map("n", "<leader>tc", function()
           set_rust_target(nil)
         end, { desc = "Clear target", buffer = bufnr })
+        -- Set Android as Rust target architecture
+        map("n", "<leader>ta", function()
+          set_rust_target("aarch64-linux-androideabi")
+        end, { desc = "Target Android", buffer = bufnr })
         -- Set Linux as Rust target architecture
         map("n", "<leader>tl", function()
           set_rust_target("x86_64-unknown-linux-gnu")
