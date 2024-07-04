@@ -7,31 +7,44 @@ local function set_rust_target(target)
   vim.cmd.RustAnalyzer("restart")
 end
 
-local function get_rust_target()
-  local target = vim.g.rust_analyzer_cargo_target
-
-  -- Check if target was set during runtime
-  if target ~= nil then
-    return target
+local function print_rust_target(bufnr)
+  local clients = vim.lsp.get_clients({ bufnr = bufnr })
+  for _, client in ipairs(clients) do
+    if client.name == "rust-analyzer" then
+      if
+        client.config
+        and client.config.settings
+        and client.config.settings["rust-analyzer"]
+        and client.config.settings["rust-analyzer"].cargo
+      then
+        local target = client.config.settings["rust-analyzer"].cargo.target
+        if type(target) == "string" then
+          LazyVim.info("Rust analyzer is targeting *" .. target .. "*", { title = "Rust target triple" })
+          return
+        end
+      end
+    end
   end
 
-  -- Otherwise, check the default target
+  -- Rust-analyzer is not attached to the current buffer.
+  -- All we can do is get the default target triple.
+  -- TODO: This should be updated to use the JSON output that is compatible with
+  -- nightly (assuming that's also available in stable)
   local handle = io.popen("rustc -vV")
   if handle ~= nil then
     local result = handle:read("*a")
     handle:close()
     for line in result:gmatch("[^\r\n]+") do
       if line:find("host:") then
-        return line:match("^%s*(.-)%s*$"):gsub("host: ", "")
+        local target = line:match("^%s*(.-)%s*$"):gsub("host: ", "")
+
+        if type(target) == "string" then
+          LazyVim.info("Rust compiler is targeting *" .. target .. "*", { title = "Rust target triple" })
+          return
+        end
       end
     end
-  else
-    return nil
   end
-end
-
-local function print_rust_target()
-  LazyVim.info("Current target *" .. get_rust_target() .. "*", { title = "Rust architecture" })
 end
 
 local rust_analyzer_default_settings = {
@@ -131,12 +144,12 @@ return {
       ---@param project_root string
       settings = function(project_root)
         return vim.tbl_deep_extend(
-          "keep",
+          "force",
           require("rustaceanvim.config.server").load_rust_analyzer_settings(project_root) or {},
           vim.tbl_deep_extend("force", rust_analyzer_default_settings, {
             ["rust-analyzer"] = {
               cargo = {
-                target = get_rust_target(),
+                target = vim.g.rust_analyzer_cargo_target, -- Allow nil to use the default target
               },
             },
           })
