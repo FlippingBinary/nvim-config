@@ -130,13 +130,13 @@ return {
 
         -- Add which-key groups
         local wk = require("which-key")
-        wk.register({
-          ["<leader>t"] = {
-            name = "+target",
+        wk.add({
+          {
+            "<leader>t",
+            group = "target",
+            icon = "🎯",
           },
-          ["<leader>d"] = {
-            name = "debug",
-          },
+          { "<leader>d", group = "debug" },
         }, {
           buffer = bufnr,
         })
