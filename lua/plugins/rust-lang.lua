@@ -62,7 +62,7 @@ local rust_analyzer_default_settings = {
     checkOnSave = {
       allFeatures = true,
       command = "clippy",
-      extraArgs = { "--no-deps" },
+      extraArgs = { "--no-deps", "--target-dir", "/tmp/rust-analyzer-check" },
     },
     procMacro = {
       enable = true,
