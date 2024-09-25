@@ -3,10 +3,34 @@ local configpath = vim.fn.stdpath("config")
 if type(configpath) == "table" then
   configpath = configpath[1]
 end
+-- Windows handles environment variables differently than Linux, so this function attempts to
+-- handle those differences.
+---@param command string
+---@param env_vars table<string, string>
+local function run_cmd_anywhere(command, env_vars)
+  local env_str = ""
+  for k, v in pairs(env_vars) do
+    -- Escape any double quotes in the environment variable value
+    v = v:gsub('"', '\\"')
+    env_str = env_str .. k .. '="' .. v .. '" '
+  end
+
+  if vim.fn.has("win32") == 1 then
+    -- For Windows, use 'set' command to set environment variables
+    return vim.fn.system("set " .. env_str .. "&& " .. command)
+  else
+    -- For Linux and other Unix-like systems
+    return vim.fn.system(env_str .. command)
+  end
+end
+
 -- It is not critical to update the config every time, so this will timeout after 5 seconds.
 -- This protects against an unreasonable delay when using NeoVim while offline.
-local config_pull_result =
-  vim.fn.system("GIT_HTTP_LOW_SPEED_LIMIT=1000 GIT_HTTP_LOW_SPEED_TIME=5 git -C " .. configpath .. " pull")
+-- However, it requires environment variables to configure git this way temporarily.
+local config_pull_result = run_cmd_anywhere("git -C " .. configpath .. " pull", {
+  GIT_HTTP_LOW_SPEED_LIMIT = "1000",
+  GIT_HTTP_LOW_SPEED_TIME = "5",
+})
 
 if os.getenv("SAFEMODE") then
   -- load safemode instead of LazyVim
