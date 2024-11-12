@@ -10,7 +10,8 @@
 -- `vim.g.os_platform` - The platform (native, docker, or wsl)
 -- `vim.g.session_type` - The session type (local, ssh, or unknown if the test fails or did not take place)
 local uname = vim.loop.os_uname()
-if uname.sysname == "Windows_NT" then
+-- This match for Windows is based on this issue: https://github.com/neovim/neovim/issues/14953
+if uname.version:match("Windows") then
   vim.g.os_family = "windows"
 elseif uname.sysname == "Darwin" then
   vim.g.os_family = "mac"
