@@ -77,7 +77,7 @@ local rust_analyzer_default_settings = {
 
 return {
   "mrcjkb/rustaceanvim",
-  version = "^4", -- Recommended
+  version = "^5", -- Recommended
   ft = { "rust" },
   opts = {
     setup = {
