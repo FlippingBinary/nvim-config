@@ -49,6 +49,10 @@ return {
 
     keymap = {
       preset = "super-tab",
+      ["<CR>"] = {
+        "accept",
+        "fallback",
+      },
     },
 
     completion = {
