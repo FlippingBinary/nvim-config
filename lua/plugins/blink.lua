@@ -48,7 +48,13 @@ return {
     },
 
     keymap = {
-      preset = "enter",
+      preset = "super-tab",
+    },
+
+    completion = {
+      list = {
+        selection = "auto_insert",
+      },
     },
   },
 }
