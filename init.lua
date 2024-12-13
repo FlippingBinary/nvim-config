@@ -29,7 +29,7 @@ end
 -- However, it requires environment variables to configure git this way temporarily.
 local config_pull_result = run_cmd_anywhere("git -C " .. configpath .. " pull", {
   GIT_HTTP_LOW_SPEED_LIMIT = "1000",
-  GIT_HTTP_LOW_SPEED_TIME = "5",
+  GIT_HTTP_LOW_SPEED_TIME = "2",
 })
 
 if os.getenv("SAFEMODE") then
@@ -45,8 +45,13 @@ else
     if config_pull_result:find("Fast%-forward") then
       LazyVim.info("Successfully updated configuration. It's best to restart LazyVim.")
     elseif config_pull_result:find("Operation too slow") then
-      LazyVim.warn(
-        "User config was not synchronized because the network is too slow right now:\n" .. config_pull_result,
+      LazyVim.info(
+        "User config was not synchronized because of network congestion.",
+        { title = "LazyVim Config Update" }
+      )
+    elseif config_pull_result:find("Could not resolve host") then
+      LazyVim.info(
+        "User config was not synchronized because we're offline right now.",
         { title = "LazyVim Config Update" }
       )
     elseif config_pull_result:find("fatal") then
