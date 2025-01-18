@@ -62,6 +62,8 @@ end
 
 -- Add any additional options here
 
+-- Disable all animations (alternatively, scroll animations could be disabled)
+vim.g.snacks_animate = false
 -- Disable :checkhealth warning about PERL
 vim.g.loaded_perl_provider = 0
 -- Disable :checkhealth warning about Ruby
