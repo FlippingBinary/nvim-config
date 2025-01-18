@@ -14,17 +14,14 @@ return {
       },
     },
     keymap = {
-      preset = "super-tab",
-      ["<CR>"] = {
-        "accept",
-        "fallback",
-      },
+      preset = "enter",
     },
 
     completion = {
       list = {
         selection = {
-          auto_insert = true,
+          preselect = false,
+          auto_insert = false,
         },
       },
     },
