@@ -34,28 +34,49 @@ install_plugins({
           ["review"] = {
             provider = ollama,
             options = {
-              url = "https://ai.goobygob.com:11434",
+              url = "http://localhost:11434",
             },
             system = "You are an expert programmer that gives constructive feedback. Review the changes in the user's git diff.",
             params = {
               model = "starling-lm",
             },
-            create = function()
-              local git_diff = vim.fn.system({ "git", "diff", "--staged" })
-              ---@cast git_diff string
-              if not git_diff:match("^diff") then
-                error("Git error:\n" .. git_diff)
-              end
-              return git_diff
+            create = function(input, context)
+              local git_diff = vim.fn.system({ 'git', 'diff', '--staged' })
+              -- if not git_diff:match("^diff") then
+              --   error("Git error:\n" .. git_diff)
+              --   return context.selection and input or ""
+              -- else
+              --   return git_diff .. "\n" .. input
+              -- end
+              return git_diff .. "\n" .. input
+              -- return context.selection and input or ""
             end,
             run = function(messages, config)
-              if config.system then
-                table.insert(messages, 1, {
-                  role = "system",
-                  content = config.system,
-                })
+              if #messages < 1 then
+                error("Need at least one message")
               end
-              return { messages = messages }
+
+              local first_msg = messages[1]
+              local prompt = "GPT4 Correct User: "
+                .. (config.system and config.system .. "\n" or "")
+                .. first_msg.content
+                .. "<|end_of_turn|>"
+
+              for i, msg in ipairs(messages) do
+                if i > 1 then
+                  prompt = prompt
+                    .. (msg.role == "user" and "GPT4 Correct User:" or "GPT4 Correct Assistant:")
+                    .. msg.content
+                    .. "<|end_of_turn|>"
+                end
+              end
+
+              prompt = prompt .. "GPT4 Correct Assistant: "
+
+              return {
+                prompt = prompt,
+                raw = true,
+              }
             end,
           },
         },
@@ -63,7 +84,7 @@ install_plugins({
           ["ollama:starling"] = {
             provider = ollama,
             options = {
-              url = "https://ai.goobygob.com:11434",
+              url = "https://ai.goobygob.com:11435",
             },
             params = {
               model = "starling-lm",
