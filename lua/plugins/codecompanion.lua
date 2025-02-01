@@ -9,13 +9,18 @@ return {
       ollama = function()
         return require("codecompanion.adapters").extend("ollama", {
           env = {
-            url = "https://ai:11435",
+            url = "https://ai.goobygob.com:11435",
           },
           headers = {
             ["Content-Type"] = "application/json",
           },
           parameters = {
             sync = true,
+          },
+          schema = {
+            model = {
+              default = "deepseek-r1:14b",
+            },
           },
         })
       end,
