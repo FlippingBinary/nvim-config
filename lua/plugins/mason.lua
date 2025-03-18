@@ -3,7 +3,7 @@ return {
     "williamboman/mason.nvim",
     optional = true,
     opts = {
-      ensure_installed = { "codelldb" },
+      ensure_installed = { "codelldb", "verible" },
       automatic_installation = {
         exclude = { "rust_analyzer" },
       },
