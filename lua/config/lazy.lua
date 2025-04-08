@@ -24,6 +24,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.typescript" },
     { import = "lazyvim.plugins.extras.linting.eslint" },
     { import = "lazyvim.plugins.extras.lsp.none-ls" },
+    { import = "lazyvim.plugins.extras.ui.smear-cursor" },
     { import = "lazyvim.plugins.extras.util.project" },
     -- import/override with your plugins
     { import = "plugins" },
