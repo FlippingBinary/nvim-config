@@ -9,9 +9,13 @@ vim.opt.rtp:prepend(lazypath)
 
 local function get_vram_info()
   local handle = io.popen("nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits")
-  local result = handle:read("*a")
-  handle:close()
-  return tonumber(result)
+  if handle then
+    local result = handle:read("*a")
+    handle:close()
+    return tonumber(result) or 0
+  else
+    return 0
+  end
 end
 
 local is_windows = vim.fn.has("win32") or vim.fn.has("win64")
