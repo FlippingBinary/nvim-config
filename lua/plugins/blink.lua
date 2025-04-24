@@ -9,14 +9,7 @@ return {
   },
   opts = {
     sources = {
-      default = { "lsp", "path", "snippets", "buffer", "codecompanion" },
-      providers = {
-        codecompanion = {
-          name = "CodeCompanion",
-          module = "codecompanion.providers.completion.blink",
-          enabled = true,
-        },
-      },
+      default = { "lsp", "path", "snippets", "buffer" },
     },
     keymap = {
       preset = "enter",
