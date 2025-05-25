@@ -7,7 +7,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-local function get_vram_info()
+local function get_vram_total()
   local handle = io.popen("nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits")
   if handle then
     local result = handle:read("*a")
@@ -19,7 +19,7 @@ local function get_vram_info()
 end
 
 local is_windows = vim.fn.has("win32") or vim.fn.has("win64")
-local is_gpu_capable = get_vram_info() > 8192
+local vram_total = get_vram_total()
 
 require("lazy").setup({
   spec = {
@@ -45,7 +45,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.yaml" },
     { import = "lazyvim.plugins.extras.linting.eslint" },
     { import = "lazyvim.plugins.extras.lsp.none-ls" },
-    { import = "lazyvim.plugins.extras.ui.smear-cursor", enabled = is_gpu_capable },
+    { import = "lazyvim.plugins.extras.ui.smear-cursor", enabled = vram_total > 8192 },
     { import = "lazyvim.plugins.extras.util.project" },
     -- import/override with your plugins
     { import = "plugins" },
