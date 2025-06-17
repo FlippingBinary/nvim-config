@@ -3,8 +3,8 @@ local configpath = vim.fn.stdpath("config")
 if type(configpath) == "table" then
   configpath = configpath[1]
 end
--- Windows handles environment variables differently than Linux, so this function attempts to
--- handle those differences.
+
+-- Run a command with environment variables set appropriately for the platform.
 ---@param command string
 ---@param env_vars table<string, string>
 local function run_cmd_anywhere(command, env_vars)
@@ -24,46 +24,49 @@ local function run_cmd_anywhere(command, env_vars)
   end
 end
 
--- It is not critical to update the config every time, so this will timeout after 5 seconds.
--- This protects against an unreasonable delay when using NeoVim while offline.
--- However, it requires environment variables to configure git this way temporarily.
-local config_pull_result = run_cmd_anywhere("git -C " .. configpath .. " pull", {
+---@type string | nil
+local config_sync_info = nil
+---@type string | nil
+local config_sync_error = nil
+
+-- It is not critical to update the config every time, so this will timeout quickly.
+-- The timeout protects against an unreasonable delay when using NeoVim while offline.
+local low_speed_opts = {
   GIT_HTTP_LOW_SPEED_LIMIT = "1000",
   GIT_HTTP_LOW_SPEED_TIME = "2",
-})
-
-if os.getenv("SAFEMODE") then
-  -- load safemode instead of LazyVim
-  require("safemode")
-else
-  -- bootstrap lazy.nvim, LazyVim and your plugins
-  require("config.lazy")
+}
+local config_fetch_result = run_cmd_anywhere("git -C " .. configpath .. " fetch", low_speed_opts)
+if config_fetch_result ~= "" then
+  local config_merge_result = run_cmd_anywhere("git -C " .. configpath .. " merge --ff-only", low_speed_opts)
+  local config_pull_result = config_fetch_result .. "\n" .. config_merge_result
 
   -- Notify the user if the config update failed. This must be done after loading
   -- LazyVim to ensure the notification displays normally.
-  if config_pull_result ~= "Already up to date.\n" then
-    if config_pull_result:find("Fast%-forward") then
-      LazyVim.info("Successfully updated configuration. It's best to restart LazyVim.")
-    elseif config_pull_result:find("Operation too slow") then
-      LazyVim.info(
-        "User config was not synchronized because of network congestion.",
-        { title = "LazyVim Config Update" }
-      )
-    elseif config_pull_result:find("Could not resolve host") then
-      LazyVim.info(
-        "User config was not synchronized because we're offline right now.",
-        { title = "LazyVim Config Update" }
-      )
-    elseif config_pull_result:find("fatal") then
-      LazyVim.error(
-        "The local repository needs to be repaired before remote changes can be pulled:\n" .. config_pull_result,
-        { title = "LazyVim Config Update" }
-      )
+  if config_merge_result ~= "Already up to date.\n" then
+    if config_merge_result:find("Fast%-forward") then
+      config_sync_info = "Successfully updated configuration. It's best to restart LazyVim."
+    elseif config_merge_result:find("Operation too slow") then
+      config_sync_info =
+        "User config was not synchronized because of network congestion."
+    elseif config_merge_result:find("Could not resolve host") then
+      config_sync_info =
+        "User config was not synchronized because we're offline right now."
+    elseif config_merge_result:find("fatal") then
+      config_sync_error =
+        "The local repository needs to be repaired before remote changes can be pulled:\n" .. config_pull_result
     else
-      LazyVim.info(
-        "Attempted to pull new changes to the user configuration:\n" .. config_pull_result,
-        { title = "LazyVim Config Update" }
-      )
+      config_sync_info =
+        "Attempted to pull new changes to the user configuration:\n" .. config_pull_result
     end
   end
+end
+
+-- bootstrap lazy.nvim, LazyVim and your plugins
+require("config.lazy")
+
+if config_sync_error ~= nil then
+  LazyVim.error(config_sync_error, { title = "LazyVim Config Update"})
+end
+if config_sync_info ~= nil then
+  LazyVim.info(config_sync_info, { title = "LazyVim Config Update"})
 end
