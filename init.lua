@@ -32,7 +32,9 @@ local config_sync_error = nil
 -- It is not critical to update the config every time, so this will timeout quickly.
 -- The timeout protects against an unreasonable delay when using NeoVim while offline.
 local low_speed_opts = {
-  GIT_HTTP_LOW_SPEED_LIMIT = "1000",
+  -- Speeds lower than this (in bps) are considered low
+  GIT_HTTP_LOW_SPEED_LIMIT = "5000",
+  -- Low speeds for longer than this many seconds will cause git to abort
   GIT_HTTP_LOW_SPEED_TIME = "2",
 }
 local config_fetch_result = run_cmd_anywhere("git -C " .. configpath .. " fetch", low_speed_opts)
