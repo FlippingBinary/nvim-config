@@ -18,13 +18,35 @@ local function get_vram_total()
   end
 end
 
-local is_windows = vim.fn.has("win32") or vim.fn.has("win64")
+-- Set vim.g.env to one of the following values (probably):
+-- - DARWIN
+-- - LINUX
+-- - WINDOWS
+-- - CYGWIN
+-- - MINGW
+-- - WSL
+if not vim.g.env then
+    local uname = vim.loop.os_uname()
+    if uname.sysname == 'Windows_NT' then
+        vim.g.env = 'WINDOWS'
+    else
+        local system = vim.fn.system('uname')
+        system = string.upper(string.gsub(system, '\n', ''))
+        if system:match('LINUX') and (vim.fn.has("win32") or vim.fn.has("win64")) then
+          vim.g.env = "WSL"
+        else
+          vim.g.env = system
+        end
+    end
+end
+
+local os_env = vim.g.env
 local vram_total = get_vram_total()
 
 -- Helper function to check if a command is available
 local function has_command(cmd)
   local cmd_str
-  if is_windows then
+  if os_env:match("WINDOWS") then
     cmd_str = "cmd /c where " .. cmd
   else
     cmd_str = "which " .. cmd
@@ -38,11 +60,13 @@ local function has_command(cmd)
 end
 
 -- Check for required tools
-local has_npm = has_command("npm")
+local has_ansible = has_command("ansible")
 local has_cargo = has_command("cargo")
-local has_latexmk = has_command("latexmk")
-local has_go = has_command("go")
 local has_docker = has_command("docker")
+local has_go = has_command("go")
+local has_latexmk = has_command("latexmk")
+local has_nix = has_command("nix")
+local has_npm = has_command("npm")
 local has_python = has_command("python3") or has_command("python")
 
 require("lazy").setup({
@@ -52,13 +76,13 @@ require("lazy").setup({
     -- import any extras modules here
     { import = "lazyvim.plugins.extras.editor.mini-diff" },
     { import = "lazyvim.plugins.extras.dap.core" },
-    { import = "lazyvim.plugins.extras.lang.ansible", enabled = not is_windows },
+    { import = "lazyvim.plugins.extras.lang.ansible", enabled = has_ansible },
     { import = "lazyvim.plugins.extras.lang.clangd" },
     { import = "lazyvim.plugins.extras.lang.docker", enabled = has_docker },
     { import = "lazyvim.plugins.extras.lang.go", enabled = has_go },
     { import = "lazyvim.plugins.extras.lang.json" },
     { import = "lazyvim.plugins.extras.lang.markdown" },
-    { import = "lazyvim.plugins.extras.lang.nix", enabled = not is_windows },
+    { import = "lazyvim.plugins.extras.lang.nix", enabled = has_nix },
     { import = "lazyvim.plugins.extras.lang.python", enabled = has_python },
     { import = "lazyvim.plugins.extras.lang.rust", enabled = has_cargo },
     { import = "lazyvim.plugins.extras.lang.svelte", enabled = has_npm },

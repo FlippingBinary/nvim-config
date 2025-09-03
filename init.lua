@@ -15,7 +15,7 @@ local function run_cmd_anywhere(command, env_vars)
     env_str = env_str .. k .. '="' .. v .. '" '
   end
 
-  if vim.fn.has("win32") == 1 then
+  if vim.loop.os_uname().sysname == 'Windows_NT' then
     -- For Windows, use 'set' command to set environment variables
     return vim.fn.system("set " .. env_str .. "&& " .. command)
   else
