@@ -21,6 +21,30 @@ end
 local is_windows = vim.fn.has("win32") or vim.fn.has("win64")
 local vram_total = get_vram_total()
 
+-- Helper function to check if a command is available
+local function has_command(cmd)
+  local cmd_str
+  if is_windows then
+    cmd_str = "cmd /c where " .. cmd
+  else
+    cmd_str = "which " .. cmd
+  end
+  local handle = io.popen(cmd_str)
+  if not handle then
+    return false
+  end
+  local exit_code = handle:close()
+  return exit_code == 0
+end
+
+-- Check for required tools
+local has_npm = has_command("npm")
+local has_cargo = has_command("cargo")
+local has_latexmk = has_command("latexmk")
+local has_go = has_command("go")
+local has_docker = has_command("docker")
+local has_python = has_command("python3") or has_command("python")
+
 require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
@@ -30,19 +54,19 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.lang.ansible", enabled = not is_windows },
     { import = "lazyvim.plugins.extras.lang.clangd" },
-    { import = "lazyvim.plugins.extras.lang.docker" },
-    { import = "lazyvim.plugins.extras.lang.go" },
+    { import = "lazyvim.plugins.extras.lang.docker", enabled = has_docker },
+    { import = "lazyvim.plugins.extras.lang.go", enabled = has_go },
     { import = "lazyvim.plugins.extras.lang.json" },
     { import = "lazyvim.plugins.extras.lang.markdown" },
     { import = "lazyvim.plugins.extras.lang.nix", enabled = not is_windows },
-    { import = "lazyvim.plugins.extras.lang.python" },
-    { import = "lazyvim.plugins.extras.lang.rust" },
-    { import = "lazyvim.plugins.extras.lang.svelte" },
-    { import = "lazyvim.plugins.extras.lang.tailwind" },
-    { import = "lazyvim.plugins.extras.lang.tex" },
-    { import = "lazyvim.plugins.extras.lang.typescript" },
+    { import = "lazyvim.plugins.extras.lang.python", enabled = has_python },
+    { import = "lazyvim.plugins.extras.lang.rust", enabled = has_cargo },
+    { import = "lazyvim.plugins.extras.lang.svelte", enabled = has_npm },
+    { import = "lazyvim.plugins.extras.lang.tailwind", enabled = has_npm },
+    { import = "lazyvim.plugins.extras.lang.tex", enabled = has_latexmk },
+    { import = "lazyvim.plugins.extras.lang.typescript", enabled = has_npm },
     { import = "lazyvim.plugins.extras.lang.yaml" },
-    { import = "lazyvim.plugins.extras.linting.eslint" },
+    { import = "lazyvim.plugins.extras.linting.eslint", enabled = has_npm },
     { import = "lazyvim.plugins.extras.lsp.none-ls" },
     { import = "lazyvim.plugins.extras.ui.smear-cursor", enabled = vram_total > 8192 },
     { import = "lazyvim.plugins.extras.util.dot" },
