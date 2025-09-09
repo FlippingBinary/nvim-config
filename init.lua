@@ -56,16 +56,18 @@ else
 end
 
 -- Check for common tools in the environment
-vim.g.apps = {}
-vim.g.apps.ansible = vim.fn.executable("ansible") == 1
-vim.g.apps.cargo = vim.fn.executable("cargo") == 1
-vim.g.apps.docker = vim.fn.executable("docker") == 1
-vim.g.apps.git = vim.fn.executable("git") == 1
-vim.g.apps.go = vim.fn.executable("go") == 1
-vim.g.apps.latexmk = vim.fn.executable("latexmk") == 1
-vim.g.apps.nix = vim.fn.executable("nix") == 1
-vim.g.apps.npm = vim.fn.executable("npm") == 1
-vim.g.apps.python = vim.fn.executable("python3") == 1 or vim.fn.executable("python") == 1
+vim.g.apps = {
+  ansible = vim.fn.executable("ansible") == 1,
+  cargo = vim.fn.executable("cargo") == 1,
+  docker = vim.fn.executable("docker") == 1,
+  git = vim.fn.executable("git") == 1,
+  go = vim.fn.executable("go") == 1,
+  latexmk = vim.fn.executable("latexmk") == 1,
+  nix = vim.fn.executable("nix") == 1,
+  npm = vim.fn.executable("npm") == 1,
+  nvim = true,
+  python = vim.fn.executable("python3") == 1 or vim.fn.executable("python") == 1,
+}
 
 if not vim.g.vram_total then
   local handle = io.popen("nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits")
@@ -97,7 +99,7 @@ local function run_cmd_anywhere(command, env_vars)
     env_str = env_str .. k .. '="' .. v .. '" '
   end
 
-  if vim.loop.os_uname().sysname == 'Windows_NT' then
+  if vim.loop.os_uname().sysname == "Windows_NT" then
     -- For Windows, use 'set' command to set environment variables
     return vim.fn.system("set " .. env_str .. "&& " .. command)
   else
@@ -130,17 +132,14 @@ if config_fetch_result ~= "" then
     if config_merge_result:find("Fast%-forward") then
       config_sync_info = "Successfully updated configuration. It's best to restart LazyVim."
     elseif config_merge_result:find("Operation too slow") then
-      config_sync_info =
-        "User config was not synchronized because of network congestion."
+      config_sync_info = "User config was not synchronized because of network congestion."
     elseif config_merge_result:find("Could not resolve host") then
-      config_sync_info =
-        "User config was not synchronized because we're offline right now."
+      config_sync_info = "User config was not synchronized because we're offline right now."
     elseif config_merge_result:find("fatal") then
-      config_sync_error =
-        "The local repository needs to be repaired before remote changes can be pulled:\n" .. config_pull_result
+      config_sync_error = "The local repository needs to be repaired before remote changes can be pulled:\n"
+        .. config_pull_result
     else
-      config_sync_info =
-        "Attempted to pull new changes to the user configuration:\n" .. config_pull_result
+      config_sync_info = "Attempted to pull new changes to the user configuration:\n" .. config_pull_result
     end
   end
 end
@@ -149,8 +148,8 @@ end
 require("config.lazy")
 
 if config_sync_error ~= nil then
-  LazyVim.error(config_sync_error, { title = "LazyVim Config Update"})
+  LazyVim.error(config_sync_error, { title = "LazyVim Config Update" })
 end
 if config_sync_info ~= nil then
-  LazyVim.info(config_sync_info, { title = "LazyVim Config Update"})
+  LazyVim.info(config_sync_info, { title = "LazyVim Config Update" })
 end
