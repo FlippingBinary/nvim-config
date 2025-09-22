@@ -26,6 +26,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.svelte", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.lang.tailwind", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.lang.tex", enabled = vim.g.apps.latexmk },
+    { import = "lazyvim.plugins.extras.lang.toml" },
     { import = "lazyvim.plugins.extras.lang.typescript", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.lang.yaml" },
     { import = "lazyvim.plugins.extras.linting.eslint", enabled = vim.g.apps.npm },
