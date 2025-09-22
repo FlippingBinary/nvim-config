@@ -25,6 +25,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.rust", enabled = vim.g.apps.cargo },
     { import = "lazyvim.plugins.extras.lang.svelte", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.lang.tailwind", enabled = vim.g.apps.npm },
+    { import = "lazyvim.plugins.extras.lang.terraform", enabled = vim.g.apps.terraform },
     { import = "lazyvim.plugins.extras.lang.tex", enabled = vim.g.apps.latexmk },
     { import = "lazyvim.plugins.extras.lang.toml" },
     { import = "lazyvim.plugins.extras.lang.typescript", enabled = vim.g.apps.npm },

@@ -13,6 +13,9 @@ return {
       if vim.g.apps.latexmk then
         opts.formatters_by_ft.tex = { "tex-fmt" }
       end
+      if vim.g.apps.terraform then
+        opts.formatters_by_ft.hcl = { "terraform_fmt" }
+      end
     end,
   },
 }

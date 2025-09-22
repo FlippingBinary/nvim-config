@@ -67,6 +67,7 @@ vim.g.apps = {
   npm = vim.fn.executable("npm") == 1,
   nvim = true,
   python = vim.fn.executable("python3") == 1 or vim.fn.executable("python") == 1,
+  terraform = vim.fn.executable("terraform") == 1,
 }
 
 if not vim.g.vram_total then
