@@ -65,12 +65,13 @@ vim.g.apps = {
   latexmk = vim.fn.executable("latexmk") == 1,
   nix = vim.fn.executable("nix") == 1,
   npm = vim.fn.executable("npm") == 1,
+  nvidia = vim.fn.executable("nvidia-smi") == 1,
   nvim = true,
   python = vim.fn.executable("python3") == 1 or vim.fn.executable("python") == 1,
   terraform = vim.fn.executable("terraform") == 1,
 }
 
-if not vim.g.vram_total then
+if vim.g.apps.nvidia and not vim.g.vram_total then
   local handle = io.popen("nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits")
   if handle then
     local result = handle:read("*a")
@@ -79,6 +80,8 @@ if not vim.g.vram_total then
   else
     vim.g.vram_total = 0
   end
+else
+  vim.g.vram_total = 0
 end
 
 -- This marks the end of the environment identification section.
