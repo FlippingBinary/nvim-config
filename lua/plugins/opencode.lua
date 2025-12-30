@@ -6,8 +6,11 @@ return {
   },
   event = "VeryLazy",
   config = function()
-    ---@type opencode. Opts
+    ---@type opencode.Opts
     vim.g.opencode_opts = {
+      project_root = function()
+        return LazyVim.root()
+      end,
       provider = {
         enabled = "snacks",
         snacks = {
@@ -27,23 +30,23 @@ return {
 
     -- Keymaps
     vim.keymap.set({ "n", "x" }, "<leader>aa", function()
-      require("opencode").ask("@this: ", { cwd = LazyVim.root(), submit = true })
+      require("opencode").ask("@this: ", { submit = true })
     end, { desc = "Ask opencode" })
 
     vim.keymap.set({ "n", "x" }, "<leader>as", function()
-      require("opencode").select({ cwd = LazyVim.root() })
+      require("opencode").select({})
     end, { desc = "Execute opencode action" })
 
     vim.keymap.set({ "n" }, "<leader>at", function()
-      require("opencode").toggle({ cwd = LazyVim.root() })
+      require("opencode").toggle({})
     end, { desc = "Toggle opencode" })
 
     vim.keymap.set({ "n", "x" }, "go", function()
-      return require("opencode").operator("@this ", { cwd = LazyVim.root() })
+      return require("opencode").operator("@this ", {})
     end, { expr = true, desc = "Add range to opencode" })
 
     vim.keymap.set("n", "goo", function()
-      return require("opencode").operator("@this ", { cwd = LazyVim.root() }) .. "_"
+      return require("opencode").operator("@this ", {}) .. "_"
     end, { expr = true, desc = "Add line to opencode" })
   end,
 }
