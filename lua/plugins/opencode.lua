@@ -1,5 +1,6 @@
 return {
-  "NickvanDyke/opencode.nvim",
+  "FlippingBinary/opencode.nvim",
+  branch = "feat/project-root",
   dependencies = {
     "folke/snacks.nvim",
   },
@@ -26,23 +27,23 @@ return {
 
     -- Keymaps
     vim.keymap.set({ "n", "x" }, "<leader>aa", function()
-      require("opencode").ask("@this: ", { submit = true })
+      require("opencode").ask("@this: ", { cwd = LazyVim.root(), submit = true })
     end, { desc = "Ask opencode" })
 
     vim.keymap.set({ "n", "x" }, "<leader>as", function()
-      require("opencode").select()
+      require("opencode").select({ cwd = LazyVim.root() })
     end, { desc = "Execute opencode action" })
 
     vim.keymap.set({ "n" }, "<leader>at", function()
-      require("opencode").toggle()
+      require("opencode").toggle({ cwd = LazyVim.root() })
     end, { desc = "Toggle opencode" })
 
     vim.keymap.set({ "n", "x" }, "go", function()
-      return require("opencode").operator("@this ")
+      return require("opencode").operator("@this ", { cwd = LazyVim.root() })
     end, { expr = true, desc = "Add range to opencode" })
 
     vim.keymap.set("n", "goo", function()
-      return require("opencode").operator("@this ") .. "_"
+      return require("opencode").operator("@this ", { cwd = LazyVim.root() }) .. "_"
     end, { expr = true, desc = "Add line to opencode" })
   end,
 }
