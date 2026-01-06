@@ -7,6 +7,103 @@
 -- `vim.g.os_platform` - The platform (native, docker, or wsl)
 -- `vim.g.session_type` - The session type (local, ssh, or unknown if the test fails or did not take place)
 local uname = vim.loop.os_uname()
+
+-- Deferred notification system that buffers messages until LazyVim is bootstrapped.
+-- This mimics the LazyVim notification API (notify, info, warn, error) but stores
+-- messages in a buffer to be flushed after lazy.nvim loads.
+---@class DeferredNotification
+---@field method "notify"|"info"|"warn"|"error"
+---@field msg string|string[]
+---@field opts? LazyNotifyOpts
+---@field timestamp string
+
+---@class DeferredNotify
+---@field _buffer DeferredNotification[]
+local DeferredNotify = {
+  _buffer = {},
+}
+
+--- Get a human-readable timestamp for the notification.
+---@return string
+local function get_timestamp()
+  return tostring(os.date("%H:%M:%S"))
+end
+
+--- Buffer a notification to be displayed after LazyVim loads.
+---@param method "notify"|"info"|"warn"|"error"
+---@param msg string|string[]
+---@param opts? LazyNotifyOpts
+local function buffer_notify(method, msg, opts)
+  table.insert(DeferredNotify._buffer, {
+    method = method,
+    msg = msg,
+    opts = opts,
+    timestamp = get_timestamp(),
+  })
+end
+
+---@param msg string|string[]
+---@param opts? LazyNotifyOpts
+function DeferredNotify.notify(msg, opts)
+  buffer_notify("notify", msg, opts)
+end
+
+---@param msg string|string[]
+---@param opts? LazyNotifyOpts
+function DeferredNotify.info(msg, opts)
+  buffer_notify("info", msg, opts)
+end
+
+---@param msg string|string[]
+---@param opts? LazyNotifyOpts
+function DeferredNotify.warn(msg, opts)
+  buffer_notify("warn", msg, opts)
+end
+
+---@param msg string|string[]
+---@param opts? LazyNotifyOpts
+function DeferredNotify.error(msg, opts)
+  buffer_notify("error", msg, opts)
+end
+
+--- Flush all buffered notifications using LazyVim if available, otherwise vim.notify.
+function DeferredNotify.flush()
+  local has_lazyvim, _ = pcall(function()
+    return LazyVim.notify
+  end)
+
+  for _, notif in ipairs(DeferredNotify._buffer) do
+    local msg = notif.msg
+    if type(msg) == "string" then
+      msg = string.format("[%s] %s", notif.timestamp, msg)
+    elseif type(msg) == "table" then
+      msg = vim.deepcopy(msg)
+      if #msg > 0 then
+        msg[1] = string.format("[%s] %s", notif.timestamp, msg[1])
+      end
+    end
+
+    if has_lazyvim then
+      LazyVim[notif.method](msg, notif.opts)
+    else
+      local level_map = {
+        notify = vim.log.levels.INFO,
+        info = vim.log.levels.INFO,
+        warn = vim.log.levels.WARN,
+        error = vim.log.levels.ERROR,
+      }
+      local level = level_map[notif.method] or vim.log.levels.INFO
+      local title = notif.opts and notif.opts.title or "Neovim"
+      if type(msg) == "table" then
+        msg = table.concat(msg, "\n")
+      end
+      vim.notify(string.format("[%s] %s", title, msg), level)
+    end
+  end
+
+  DeferredNotify._buffer = {}
+end
+
 -- This match for Windows is based on this issue: https://github.com/neovim/neovim/issues/14953
 if uname.version:match("Windows") then
   vim.g.os_family = "windows"
@@ -15,10 +112,11 @@ elseif uname.sysname == "Darwin" then
 elseif uname.sysname == "Linux" then
   vim.g.os_family = "linux"
 else
-  LazyVim.notify(
+  DeferredNotify.warn(
     "A new OS! Awesome! Please identify what os_family '"
       .. uname.sysname
-      .. "' belongs to and update ~/.config/nvim/lua/config/options.lua!"
+      .. "' belongs to and update ~/.config/nvim/lua/config/options.lua!",
+    { title = "OS Detection" }
   )
 end
 
@@ -55,14 +153,6 @@ else
   end
 end
 
--- Deferred warning messages for slow startup operations.
--- These are displayed after LazyVim is bootstrapped.
----@type string | nil
-local startup_warning = nil
-
--- Utility functions for timing and timeout management during startup.
--- These help identify slow operations without cluttering normal startup output.
-
 --- Measure execution time of a function and warn if it exceeds a threshold.
 --- @param name string Description of the operation
 --- @param threshold_ms number Time threshold in milliseconds
@@ -73,8 +163,10 @@ local function timed(name, threshold_ms, fn)
   local result = fn()
   local elapsed_ms = (vim.loop.hrtime() - start) / 1e6
   if elapsed_ms > threshold_ms then
-    local msg = string.format("[SLOW] %s took %.0fms (threshold: %dms)", name, elapsed_ms, threshold_ms)
-    startup_warning = startup_warning and (startup_warning .. "\n" .. msg) or msg
+    DeferredNotify.warn(
+      string.format("[SLOW] %s took %.0fms (threshold: %dms)", name, elapsed_ms, threshold_ms),
+      { title = "Startup Performance" }
+    )
   end
   return result
 end
@@ -130,8 +222,10 @@ local function run_with_timeout(cmd, opts)
     if not done then
       timed_out = true
       vim.fn.jobstop(job_id)
-      local msg = string.format("[TIMEOUT] %s killed after %dms", cmd[1], timeout_ms)
-      startup_warning = startup_warning and (startup_warning .. "\n" .. msg) or msg
+      DeferredNotify.warn(
+        string.format("[TIMEOUT] %s killed after %dms", cmd[1], timeout_ms),
+        { title = "Startup Performance" }
+      )
     end
   end)
 
@@ -187,18 +281,8 @@ if type(configpath) == "table" then
   configpath = configpath[1]
 end
 
----@type string | nil
-local config_sync_info = nil
----@type string | nil
-local config_sync_error = nil
-
--- It is not critical to update the config every time, so this will timeout quickly.
--- The timeout protects against an unreasonable delay when using NeoVim while offline.
--- These environment variables encourage git to give up quickly on slow connections.
 local low_speed_opts = {
-  -- Speeds lower than this (in bps) are considered low
   GIT_HTTP_LOW_SPEED_LIMIT = "4000",
-  -- Low speeds for longer than this many seconds will cause git to abort
   GIT_HTTP_LOW_SPEED_TIME = "1",
 }
 
@@ -213,37 +297,38 @@ if not fetch_timed_out and config_fetch_result ~= "" then
     { timeout_ms = 1000, env = low_speed_opts }
   )
 
-  if not merge_timed_out then
+  if not merge_timed_out and config_merge_result ~= "Already up to date." then
     local config_pull_result = config_fetch_result .. "\n" .. config_merge_result
 
-    -- Notify the user if the config update failed. This must be done after loading
-    -- LazyVim to ensure the notification displays normally.
-    if config_merge_result ~= "Already up to date." then
-      if config_merge_result:find("Fast%-forward") then
-        config_sync_info = "Successfully updated configuration. It's best to restart LazyVim."
-      elseif config_merge_result:find("Operation too slow") then
-        config_sync_info = "User config was not synchronized because of network congestion."
-      elseif config_merge_result:find("Could not resolve host") then
-        config_sync_info = "User config was not synchronized because we're offline right now."
-      elseif config_merge_result:find("fatal") then
-        config_sync_error = "The local repository needs to be repaired before remote changes can be pulled:\n"
-          .. config_pull_result
-      else
-        config_sync_info = "Attempted to pull new changes to the user configuration:\n" .. config_pull_result
-      end
+    if config_merge_result:find("Fast%-forward") then
+      DeferredNotify.info(
+        "Successfully updated configuration. It's best to restart LazyVim.",
+        { title = "Config Update" }
+      )
+    elseif config_merge_result:find("Operation too slow") then
+      DeferredNotify.info(
+        "User config was not synchronized because of network congestion.",
+        { title = "Config Update" }
+      )
+    elseif config_merge_result:find("Could not resolve host") then
+      DeferredNotify.info(
+        "User config was not synchronized because we're offline right now.",
+        { title = "Config Update" }
+      )
+    elseif config_merge_result:find("fatal") then
+      DeferredNotify.error(
+        "The local repository needs to be repaired before remote changes can be pulled:\n" .. config_pull_result,
+        { title = "Config Update" }
+      )
+    else
+      DeferredNotify.info(
+        "Attempted to pull new changes to the user configuration:\n" .. config_pull_result,
+        { title = "Config Update" }
+      )
     end
   end
 end
 
--- bootstrap lazy.nvim, LazyVim and your plugins
 require("config.lazy")
 
-if config_sync_error ~= nil then
-  LazyVim.error(config_sync_error, { title = "LazyVim Config Update" })
-end
-if config_sync_info ~= nil then
-  LazyVim.info(config_sync_info, { title = "LazyVim Config Update" })
-end
-if startup_warning ~= nil then
-  LazyVim.warn(startup_warning, { title = "Startup Performance" })
-end
+DeferredNotify.flush()
