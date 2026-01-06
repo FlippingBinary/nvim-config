@@ -43,3 +43,6 @@ if vim.g.os_family == "windows" then
   vim.o.shellquote = ""
   vim.o.shellxquote = ""
 end
+
+-- Prioritize git repositories over LSP workspaces
+vim.g.root_spec = { { ".git" }, "lsp", "cwd" }
