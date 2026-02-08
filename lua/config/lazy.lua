@@ -19,6 +19,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.clangd" },
     { import = "lazyvim.plugins.extras.lang.docker", enabled = vim.g.apps.docker },
     { import = "lazyvim.plugins.extras.lang.go", enabled = vim.g.apps.go },
+    { import = "lazyvim.plugins.extras.lang.java" },
     { import = "lazyvim.plugins.extras.lang.json", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.lang.markdown" },
     { import = "lazyvim.plugins.extras.lang.nix", enabled = vim.g.apps.nix },
