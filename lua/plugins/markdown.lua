@@ -8,6 +8,9 @@ return {
     require("lazy").load({ plugins = { "markdown-preview.nvim" } })
     vim.fn["mkdp#util#install"]()
   end,
+  init = function()
+    vim.g.mkdp_auto_close = 0
+  end,
   keys = {
     {
       "<leader>cp",
