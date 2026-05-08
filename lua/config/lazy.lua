@@ -31,6 +31,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.toml" },
     { import = "lazyvim.plugins.extras.lang.typescript", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.lang.typescript.biome" },
+    { import = "lazyvim.plugins.extras.lang.typst" },
     { import = "lazyvim.plugins.extras.lang.yaml", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.linting.eslint", enabled = vim.g.apps.npm },
     { import = "lazyvim.plugins.extras.ui.smear-cursor", enabled = vim.g.vram_total > 8192 },
